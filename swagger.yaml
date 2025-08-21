@@ -1,0 +1,263 @@
+openapi: 3.0.3
+info:
+  title: API Sala de cine
+  description: |-
+    Serverless para dar de alta una sala de cine
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/v1
+
+paths:
+  /sala-cine:
+    post:
+      summary: Crear sala de cine
+      description: Endpoint para de alta una sala de cine
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostMovieTheaterRequest"
+        required: true
+        description: Payload para dar de alta una sala de cine
+      responses:
+        "201":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostMovieTheaterResponse'
+        "400":
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonError400'
+  /sala-cine/:id:
+    get:
+      summary: Consultar sala de cine
+      description: Consultar sala de cine por id
+      parameters:
+        - name: id
+          in: path
+          description: id de la sala de cine
+          required: true
+          schema:
+            example: 1
+            type: number
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMovieTheaterResponse'
+        "400":
+          description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonError400'
+
+components:
+  schemas:
+    PostMovieTheaterRequest:
+      type: object
+      required:
+        - direccion
+        - numero_sala
+        - tipo_sala
+        - capacidad
+        - programacion
+      properties:
+        direccion:
+          type: string
+          description: "Dirección de la sala de cine"
+          example: "Av. Larco"
+        numero_sala:
+          type: integer
+          description: "Número de sala"
+          example: 1
+        tipo_sala:
+          type: string
+          description: "Tipo de sala (e.g. 3D, 2D)"
+          example: "3D"
+        capacidad:
+          type: integer
+          description: "Capacidad de la sala"
+          example: 70
+        programacion:
+          type: array
+          description: "Lista de programaciones"
+          items:
+            $ref: '#/components/schemas/PostSchedulingRequest'
+
+    PostSchedulingRequest:
+      type: object
+      required:
+        - pelicula_codigo
+        - horarios
+      properties:
+        pelicula_codigo:
+          type: integer
+          description: "Código de la película"
+          example: 1
+        horarios:
+          type: array
+          description: "Horarios de la película"
+          items:
+            $ref: '#/components/schemas/PostScheduleRequest'
+
+    PostScheduleRequest:
+      type: object
+      required:
+        - inicio
+        - fin
+      properties:
+        inicio:
+          type: string
+          format: date-time
+          description: "Hora de inicio de la película"
+          example: "2024-10-11T14:30:00"
+        fin:
+          type: string
+          format: date-time
+          description: "Hora de finalización de la película"
+          example: "2024-10-11T15:30:00"
+
+    PostMovieTheaterResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID de la sala de cine creada"
+          example: 84
+        direccion:
+          type: string
+          description: "Dirección de la sala de cine"
+          example: "Av. Larco"
+        numero_sala:
+          type: integer
+          description: "Número de sala"
+          example: 1
+        tipo_sala:
+          type: string
+          description: "Tipo de sala (e.g. 3D, 2D)"
+          example: "3D"
+        capacidad:
+          type: integer
+          description: "Capacidad de la sala"
+          example: 70
+        programacion:
+          type: array
+          description: "Lista de programaciones"
+          items:
+            $ref: '#/components/schemas/PostSchedulingResponse'
+
+    PostSchedulingResponse:
+      type: object
+      properties:
+        pelicula_codigo:
+          type: integer
+          description: "Código de la película"
+          example: 1
+        horarios:
+          type: array
+          description: "Horarios de la película"
+          items:
+            $ref: '#/components/schemas/PostScheduleResponse'
+
+    PostScheduleResponse:
+      type: object
+      properties:
+        inicio:
+          type: string
+          format: date-time
+          description: "Hora de inicio de la película"
+          example: "2024-10-11T14:30:00"
+        fin:
+          type: string
+          format: date-time
+          description: "Hora de finalización de la película"
+          example: "2024-10-11T15:30:00"
+
+    GetMovieTheaterResponse:
+      type: object
+      properties:
+        sala_cine_id:
+          type: integer
+          description: "ID de la sala de cine"
+          example: 75
+        direccion:
+          type: string
+          description: "Dirección de la sala de cine"
+          example: "Av. Larco"
+        numero_sala:
+          type: integer
+          description: "Número de sala"
+          example: 1
+        tipo_sala:
+          type: string
+          description: "Tipo de sala (e.g. 3D, 2D)"
+          example: "3D"
+        capacidad:
+          type: integer
+          description: "Capacidad de la sala"
+          example: 70
+        pelicula_estreno:
+          type: array
+          description: "Lista de películas en estreno"
+          items:
+            $ref: '#/components/schemas/GetFilmDetailsResponse'
+
+    GetFilmDetailsResponse:
+      type: object
+      properties:
+        fecha_hora_inicio:
+          type: string
+          format: date-time
+          description: "Hora de inicio de la película"
+          example: "2024-10-11T19:30:00.000Z"
+        fecha_hora_fin:
+          type: string
+          format: date-time
+          description: "Hora de finalización de la película"
+          example: "2024-10-11T20:30:00.000Z"
+        pelicula:
+          type: object
+          properties:
+            titulo:
+              type: string
+              description: "Título de la película"
+              example: "A New Hope"
+            episodio_id:
+              type: integer
+              description: "ID del episodio"
+              example: 4
+            resumen:
+              type: string
+              description: "Resumen de la película"
+              example: "It is a period of civil war. Rebel spaceships, striking from a hidden base, have won their first victory against the evil Galactic Empire..."
+            director:
+              type: string
+              description: "Director de la película"
+              example: "George Lucas"
+            productor:
+              type: string
+              description: "Productor de la película"
+              example: "Gary Kurtz, Rick McCallum"
+            fecha_lanzamiento:
+              type: string
+              format: date
+              description: "Fecha de lanzamiento de la película"
+              example: "1977-05-25"
+
+    CommonError400:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "IS_NOT_EMPTY"
+        message:
+          type: string
+          example: "El campo 'x' no debe ser vacio"
+

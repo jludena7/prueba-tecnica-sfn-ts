@@ -1,0 +1,42 @@
+service: post-lambda
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  environment:
+    DB_HOST: ${process.env.DB_HOST}
+    DB_PORT: ${process.env.DB_PORT}
+    DB_USER: ${process.env.DB_USER}
+    DB_PASSWORD: ${process.env.DB_PASSWORD}
+    DB_NAME: ${process.env.DB_NAME}
+    LOG_ACTIVE: ${process.env.LOG_ACTIVE}
+    LOG_LEVEL: ${process.env.LOG_LEVEL}
+
+package:
+  individually: true
+
+custom:
+  serverless-offline:
+    port: 3000
+
+functions:
+  movieTheaterApi:
+    handler: app/src/infrastructure/api/handlers/MovieTheaterHandler.handler
+    events:
+      - http:
+          path: sala-cine
+          method: post
+          cors: true
+      - http:
+          path: sala-cine/{id}
+          method: get
+          cors: true
+      - http:
+          path: sala-cine/historial
+          method: get
+          cors: true
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+  - serverless-plugin-typescript
