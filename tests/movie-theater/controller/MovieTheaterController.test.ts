@@ -10,13 +10,15 @@ import {GetMovieTheaterUseCase} from "../../../app/src/application/useCases/GetM
 import {GetHistoryMovieTheaterUseCase} from "../../../app/src/application/useCases/GetHistoryMovieTheaterUseCase";
 import {APIGatewayProxyEvent} from "aws-lambda";
 import {HTTP_STATUS} from "../../../app/src/domain/utils/constants/constants";
-import {CreateMovieTheaterData} from "../../utils/response-repositories/ResponseRds";
+import {CreateMovieTheaterData, GetMovieTheaterData} from "../../utils/response-repositories/ResponseRds";
 import {REQUEST_API} from "../../utils/request/Request";
 import {RESPONSE_API} from "../../utils/response/Response";
 import PayloadError from "../../../app/src/domain/utils/errors/payload.error";
 import {VALIDATION_MESSAGES} from "../../../app/src/domain/utils/messages/errors/validation.message";
 import UnknownError from "../../../app/src/domain/utils/errors/unknown.error";
 import {WinstonLogger} from "../../../app/src/infrastructure/api/logger/WinstonLogger";
+import {GetByIdData} from "../../utils/response-repositories/ResponseRest";
+import {GetHistoryData} from "../../utils/response-repositories/ResponseCache";
 
 describe("MovieTheaterController", () => {
   let cacheMovieTheaterRepositoryMock: jest.Mocked<CacheMovieTheaterRepository>;
@@ -39,6 +41,10 @@ describe("MovieTheaterController", () => {
       createSchedule: jest.fn(),
       getMovieTheater: jest.fn(),
     } as jest.Mocked<RdsMovieTheaterRepository>;
+
+    restMovieTheaterRepositoryMock = {
+      getById: jest.fn(),
+    } as jest.Mocked<RestMovieTheaterRepository>;
 
     const swService = new SwService(restMovieTheaterRepositoryMock);
     const movieTheaterService = new MovieTheaterService(
@@ -168,5 +174,52 @@ describe("MovieTheaterController", () => {
     expect(result.body).toBe(
       JSON.stringify(VALIDATION_MESSAGES.MAX_LENGTH("direccion", 100)),
     );
+  });
+
+  it("should return 200 and get a movie theater", async () => {
+    rdsMovieTheaterRepositoryMock.getMovieTheater = jest.fn().mockResolvedValue(GetMovieTheaterData.OK_RESPONSE);
+    restMovieTheaterRepositoryMock.getById = jest.fn().mockResolvedValue(GetByIdData.OK_RESPONSE);
+    const event: APIGatewayProxyEvent = {
+      body: null,
+      headers: {},
+      httpMethod: "POST",
+      isBase64Encoded: false,
+      path: "/sala-cine/{id}",
+      pathParameters: {id: "3"},
+      queryStringParameters: null,
+      stageVariables: null,
+      requestContext: null,
+      resource: "",
+      multiValueHeaders: {},
+      multiValueQueryStringParameters: null,
+    };
+
+    const result = await movieTheaterControllerMock.getMovieTheater(event);
+
+    expect(result.statusCode).toBe(HTTP_STATUS.CODE_200);
+    expect(result.body).toBe(JSON.stringify(RESPONSE_API.getMovieTheater));
+  });
+
+  it("should return 200 and get a movie theater history", async () => {
+    cacheMovieTheaterRepositoryMock.getHistory = jest.fn().mockResolvedValue(GetHistoryData.OK_RESPONSE);
+    const event: APIGatewayProxyEvent = {
+      body: null,
+      headers: {},
+      httpMethod: "POST",
+      isBase64Encoded: false,
+      path: "/sala-cine/historial",
+      pathParameters: null,
+      queryStringParameters: {limit: "3"},
+      stageVariables: null,
+      requestContext: null,
+      resource: "",
+      multiValueHeaders: {},
+      multiValueQueryStringParameters: null,
+    };
+
+    const result = await movieTheaterControllerMock.getHistoryMovieTheaters(event);
+
+    expect(result.statusCode).toBe(HTTP_STATUS.CODE_200);
+    expect(result.body).toBe(JSON.stringify(RESPONSE_API.getHistoryMovieTheater));
   });
 });

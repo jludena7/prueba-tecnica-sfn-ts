@@ -26,7 +26,7 @@ export class HttpMovieTheaterRepository implements RestMovieTheaterRepository{
         if (error instanceof AxiosError) {
           throw new CallError(error.response.status, error.response.statusText);
         }
-  
+
         throw new CallError(HTTP_STATUS.CODE_500, ERROR_MESSAGE.API_CALL_ERROR);
       }
     }

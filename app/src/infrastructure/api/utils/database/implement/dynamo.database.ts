@@ -119,7 +119,7 @@ export class DynamoDatabase implements ICacheDatabase {
 
       const command = new PutCommand(params);
       await this.docClient.send(command);
-      
+
       console.log(`Elemento insertado correctamente en ${tableName}`);
       return true;
     } catch (error) {
@@ -219,10 +219,10 @@ export class DynamoDatabase implements ICacheDatabase {
       throw error;
     }
   }
-  
+
   async createTableIfNotExists(tableDefinition: TableDefinition): Promise<boolean> {
     const tableExists = await this.tableExists(tableDefinition.TableName);
-    
+
     if (tableExists) {
       console.log(`La tabla ${tableDefinition.TableName} ya existe`);
       return true;
@@ -234,18 +234,18 @@ export class DynamoDatabase implements ICacheDatabase {
         AttributeDefinitions: tableDefinition.AttributeDefinitions,
         KeySchema: tableDefinition.KeySchema,
         BillingMode: tableDefinition.BillingMode || "PAY_PER_REQUEST",
-        ProvisionedThroughput: tableDefinition.BillingMode === "PROVISIONED" ? 
+        ProvisionedThroughput: tableDefinition.BillingMode === "PROVISIONED" ?
           tableDefinition.ProvisionedThroughput : undefined,
       };
 
       const command = new CreateTableCommand(params);
       await this.docClient.send(command);
-      
+
       console.log(`Tabla ${tableDefinition.TableName} creada exitosamente`);
-      
+
       // Esperar a que la tabla esté activa (opcional)
       await this.waitForTableActive(tableDefinition.TableName);
-      
+
       return true;
     } catch (error) {
       console.error(`Error al crear la tabla ${tableDefinition.TableName}:`, error);
@@ -266,7 +266,7 @@ export class DynamoDatabase implements ICacheDatabase {
 
       const command = new DeleteTableCommand(params);
       await this.docClient.send(command);
-      
+
       console.log(`Tabla ${tableName} eliminada exitosamente`);
       return true;
     } catch (error) {
@@ -277,17 +277,17 @@ export class DynamoDatabase implements ICacheDatabase {
 
   private async waitForTableActive(tableName: string, maxWaitTime: number = 30): Promise<void> {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < maxWaitTime * 1000) {
       try {
         const command = new DescribeTableCommand({ TableName: tableName });
         const result = await this.docClient.send(command);
-        
+
         if (result.Table?.TableStatus === "ACTIVE") {
           console.log(`Tabla ${tableName} está activa`);
           return;
         }
-        
+
         console.log(`Esperando que la tabla ${tableName} esté activa...`);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Esperar 1 segundo
       } catch (error) {
@@ -295,7 +295,7 @@ export class DynamoDatabase implements ICacheDatabase {
         throw error;
       }
     }
-    
+
     throw new Error(`Tiempo de espera agotado para la tabla ${tableName}`);
   }
 
